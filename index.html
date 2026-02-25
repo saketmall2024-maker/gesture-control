@@ -27,6 +27,20 @@ const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
+// -------- ESP32 HTTP IP --------
+const ESP_IP = "http://192.168.1.XXX/"; // Replace with your ESP32 IP
+
+// Debounce so repeated requests don’t spam ESP32
+let lastCommand = "";
+
+// Send HTTP GET to ESP32
+function sendColor(cmd){
+  if(cmd !== lastCommand){
+    fetch(ESP_IP + cmd).catch(()=>{});
+    lastCommand = cmd;
+  }
+}
+
 // -------- CAMERA SETUP --------
 navigator.mediaDevices.getUserMedia({video: {facingMode:"environment"}})
 .then(stream => video.srcObject = stream)
@@ -64,10 +78,12 @@ hands.onResults(results => {
       ctx.fillStyle = "green";
       ctx.font = "40px Arial";
       ctx.fillText("👍 THUMBS UP", 20, 60);
+      sendColor("LEFT");   // GREEN → ESP32 NeoPixel
     } else {               // Thumbs Down
       ctx.fillStyle = "red";
       ctx.font = "40px Arial";
       ctx.fillText("👎 THUMBS DOWN", 20, 60);
+      sendColor("RIGHT");  // RED → ESP32 NeoPixel
     }
 
     // Draw hand landmarks
